@@ -16,7 +16,11 @@ jobs:
       run: |
         sudo apt update
         sudo apt -y install build-essential tree
+
+        - name: InstallDataTableText
+      run: |
         sudo cpan install Data::Table::Text
+
 
     - name: Test
       run: |
