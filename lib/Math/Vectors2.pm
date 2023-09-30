@@ -6,7 +6,7 @@
 # podDocumentation
 package Math::Vectors2;
 require v5.16;
-our $VERSION = 20200419;
+our $VERSION = 20230930;
 use warnings FATAL => qw(all);
 use strict;
 use Carp qw(confess);
@@ -15,12 +15,12 @@ use Math::Trig;
 
 my $nearness = 1e-6;                                                            # Definition of near
 
-sub near($$)                                                                   # Check two scalars are near each other
+sub near($$)                                                                    # Check two scalars are near each other.
  {my ($o, $p) = @_;
   abs($p-$o) < $nearness
  }
 
-sub near2($$)                                                                   # Check two vectors are near each other
+sub near2($$)                                                                   # Check two vectors are near each other.
  {my ($o, $p) = @_;
   $o->d($p) < $nearness
  }
@@ -35,16 +35,16 @@ sub new($$)                                                                     
   );
  }
 
-sub zeroAndUnits()                                                              #S Create the useful vectors: zero=(0,0), x=(1,0), y=(0,1)
+sub zeroAndUnits()                                                              #S Create the useful vectors: zero=(0,0), x=(1,0), y=(0,1).
  {map {&new(@$_)} ([0, 0], [1, 0], [0, 1])
  }
 
-sub eq($$)                                                                      # Whether two vectors are equal to within the accuracy of floating point arithmetic
+sub eq($$)                                                                      # Whether two vectors are equal to within the accuracy of floating point arithmetic.
  {my ($o, $p) = @_;                                                             # First vector, second vector
   near2($o, $p)
  }
 
-sub zero($)                                                                     # Whether a vector is equal to zero within the accuracy of floating point arithmetic
+sub zero($)                                                                     # Whether a vector is equal to zero within the accuracy of floating point arithmetic.
  {my ($o) = @_;                                                                 # Vector
   near($o->x, 0) && near($o->y, 0)
  }
@@ -146,12 +146,12 @@ sub area($$)                                                                    
   $o->x * $p->y - $o->y * $p->x
  }
 
-sub cosine($$)                                                                  # cos(angle between two vectors)
+sub cosine($$)                                                                  # Cos(angle between two vectors).
  {my ($o, $p) = @_;                                                             # Vector 1, vector 2
   $o->dot($p) / $o->l / $p->l
  }
 
-sub sine($$)                                                                    # sin(angle between two vectors)
+sub sine($$)                                                                    # Sin(angle between two vectors).
  {my ($o, $p) = @_;                                                             # Vector 1, vector 2
   $o->area($p) / $o->l / $p->l
  }
@@ -186,7 +186,13 @@ sub r270($)                                                                     
   new($o->y, -$o->x)
  }
 
-sub swap($)                                                                     # Swap the components of a vector
+sub rotate($$$$)                                                                # Rotate a vector about another vector through an angle specified by its values as sin, and cos.
+ {my ($p, $o, $sin, $cos) = @_;                                                 # Vector to rotate, center of rotation, sin of the angle of rotation, cosine of the angle of rotation
+  my $q = $p - $o;
+  $o + new($cos*$q->x-$sin*$q->y, $sin*$q->x+$cos*$q->y) 
+ }
+
+sub swap($)                                                                     # Swap the components of a vector.
  {my ($o) = @_;                                                                 # Vector
   new($o->y, $o->x)
  }
@@ -995,7 +1001,9 @@ test unless caller;
 1;
 # podDocumentation
 __DATA__
-use Test::More tests => 433;
+use Test::More tests => 439;
+
+eval "goto latest";
 
 if (1) {                                                                        #TzeroAndUnits #Tplus #Tminus #Tmultiply #Tdivide #Teq #Tprint
   my ($z, $x, $y) = zeroAndUnits;
@@ -1088,14 +1096,14 @@ if (1) {                                                                        
   ok near deg2rad(+30), ($x + $y * sqrt(3))->angle($y);
 
   ok near deg2rad(  0), $y->smallestAngleToNormalPlane( $x);                    # First vector is y, second vector is 0 degrees anti-clockwise from x axis
-  ok near deg2rad(+45), $y->smallestAngleToNormalPlane( $x +  $y);              #   +45
-  ok near deg2rad(+90), $y->smallestAngleToNormalPlane(       $y);              #   +90
-  ok near deg2rad(+45), $y->smallestAngleToNormalPlane(-$x + -$y);              #  +135
-  ok near deg2rad(  0), $y->smallestAngleToNormalPlane(-$x);                    #  +180
-  ok near deg2rad(+45), $y->smallestAngleToNormalPlane(-$x + -$y);              #  +225
-  ok near deg2rad(+90), $y->smallestAngleToNormalPlane(      -$y);              #  +270
-  ok near deg2rad(+45), $y->smallestAngleToNormalPlane(-$x + -$y);              #  +315
-  ok near deg2rad(  0), $y->smallestAngleToNormalPlane( $x);                    #  +360
+  ok near deg2rad(+45), $y->smallestAngleToNormalPlane( $x +  $y);              
+  ok near deg2rad(+90), $y->smallestAngleToNormalPlane(       $y);              
+  ok near deg2rad(+45), $y->smallestAngleToNormalPlane(-$x + -$y);              
+  ok near deg2rad(  0), $y->smallestAngleToNormalPlane(-$x);                    
+  ok near deg2rad(+45), $y->smallestAngleToNormalPlane(-$x + -$y);              
+  ok near deg2rad(+90), $y->smallestAngleToNormalPlane(      -$y);              
+  ok near deg2rad(+45), $y->smallestAngleToNormalPlane(-$x + -$y);              
+  ok near deg2rad(  0), $y->smallestAngleToNormalPlane( $x);                    
 
   for my $i(-179..179)
    {ok near $x < new(cos(deg2rad($i)), sin(deg2rad($i))), deg2rad($i);
@@ -1141,3 +1149,16 @@ if (1) {                                                                        
   ok !$y->zero;
  }
 
+#latest:;
+if (1) {                                                                        #Trotate
+  ok near2 new(1, 0)->rotate(new(0,0),  1, 0), new( 0, 1);
+  ok near2 new(1, 1)->rotate(new(0,0),  1, 0), new(-1, 1);
+  ok near2 new(0, 1)->rotate(new(0,0),  1, 0), new(-1, 0);
+  ok near2 new(2, 2)->rotate(new(1,1),  -1/sqrt(2),   1/sqrt(2)), new(1+sqrt(2), 1);
+  ok near2 new(3, 1)->rotate(new(1,1),     sqrt(3)/2, 1/2),       new(2,         1+sqrt(3));
+
+  ok near2 new(3, 1)->rotate(new(1,1), 
+     new(1, 0)->sine  (new(1,1)), 
+     new(1, 0)->cosine(new(1,1))),
+     new(1+sqrt(2), 1+sqrt(2));
+ }
